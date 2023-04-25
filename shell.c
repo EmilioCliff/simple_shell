@@ -3,6 +3,54 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
+void _strcpy(char *dest, char *src);
+char *find_argv_in_path(char *path, char *argv)
+{
+	char *dir, *command_path, *path_copy;
+	/*_strcpy(path_copy, path);*/
+	path_copy = strdup(path);
+	int found = 0;
+	dir = strtok(path_copy, ":");
+	while (dir != NULL)
+	{
+		command_path = malloc(strlen(dir) + strlen(argv) + 2);
+		if (command_path == NULL)
+		{
+			perror("malloc");
+			exit(EXIT_FAILURE);
+		}
+		sprintf(command_path, "%s/%s", dir, argv);
+		
+		if (access(command_path, F_OK) == 0)
+		{
+			found = 1;
+			return (command_path);
+		}
+		dir = strtok(NULL, ":");
+		free(command_path);
+	}
+	command_path = NULL;
+	return (command_path);
+}
+char *_getenv(const char *env)
+{
+	extern char **environ;
+	char *value = NULL, **envv, *env_var;
+	for (envv = environ; *envv != NULL; envv++)
+	{
+		env_var = *envv;
+		if (strncmp(env, env_var, strlen(env)) == 0 && env_var[strlen(env)] == '=')
+		{
+			value = (char *)malloc(strlen(env_var) - strlen(env));
+			if (value != NULL)
+			{
+				strcpy(value, env_var + strlen(env) + 1);
+			}
+			break;
+		}
+	}
+	return (value);
+}
 void print_dir()
 {
 	char ch[1024];
@@ -46,17 +94,17 @@ int _strncmp(char *s1, char *s2, size_t n)
 	else
 		return (-10);
 }
-int main()
+int main(int argc, char **argv)
 {
 	
-	char *lineptr = NULL, *lineptr_cpy, *denim, *token;
+	char *lineptr = NULL, *lineptr_cpy, *denim, *token, *path, *path_name;
 	size_t n = 0;
 	ssize_t no_of_char;
-	int token_num = 0, i = 0, count = 0, status, result, cmp_rslt;
-	/*char *envp[] = {PATH, NULL};*/
-	char **argv;
+	int i = 0, count = 0, status, result, cmp_rslt;
+	argc = 0;
 
 	denim = " \n";
+
 	while(1)
 	{
 	print_dir();
@@ -78,12 +126,12 @@ int main()
 
 	while (token != NULL)
 	{
-		token_num++;
+		argc++;
 		token = strtok(NULL, denim);
 	}
-	token_num++;
+	argc++;
 
-	argv = malloc(sizeof(char *) * token_num);
+	argv = malloc(sizeof(char *) * argc);
 	if (argv == NULL)
 	{
 		perror("malloc");
@@ -109,16 +157,19 @@ int main()
 		argv[i] = strtok(NULL, denim);
 	}
 	argv[i] = NULL;
-	result = access(argv[0], F_OK);
-	if (result == -1)
+	path = _getenv("PATH");
+	path_name = find_argv_in_path(path, argv[0]);
+	
+	if (path_name == NULL)
 	{
-		perror("access");
+		printf("command not found: %s\n", argv[0]);
 		continue;
 	}
+	
 	pid_t pid = fork();
 	if (pid == 0)
 	{
-	execve(argv[0], argv,  NULL);
+	execve(path_name, argv,  NULL);
 	perror("execve");
 	}
 	else if (pid == -1)
