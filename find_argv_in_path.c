@@ -16,7 +16,7 @@ char *find_argv_in_path(char *path, char *argv)
 	if (path_copy == NULL)
 	{
 		perror("malloc");
-		exit (-1);
+		exit(-1);
 	}
 	_strcpy(path_copy, path);
 	dir = strtok(path_copy, ":");
@@ -29,8 +29,8 @@ char *find_argv_in_path(char *path, char *argv)
 			exit(EXIT_FAILURE);
 		}
 		_strcat(command_path, dir);
-    	_strcat(command_path, "/");
-    	_strcat(command_path, argv);
+		_strcat(command_path, "/");
+		_strcat(command_path, argv);
 		if (access(command_path, F_OK) == 0)
 		{
 			return (command_path);
