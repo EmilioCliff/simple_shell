@@ -19,7 +19,7 @@ char *_getenv(const char *env)
 			if (value == NULL)
 			{
 				perror("malloc");
-				exit (-1);
+				exit(-1);
 			}
 			if (value != NULL)
 			{
