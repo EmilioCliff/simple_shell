@@ -5,9 +5,7 @@ void _printf(char *format, ...)
 	int i;
 
 	va_list args;
-	
 	va_start(args, format);
-	
 	while (*format != '\0')
 	{
 		if (*format == '%')
@@ -19,18 +17,16 @@ void _printf(char *format, ...)
 			{
 				int value = va_arg(args, int);
 				char buffer[32];
-				
 				int len = 0;
 				if (value < 0)
 				{
 					buffer[len++] = '-';
 					value = -value;
 				}
-				do
-				{
+				do {
 					buffer[len++] = value % 10 + '0';
 					value /= 10;
-				}while (value > 0);
+				} while (value > 0);
 				for (i = 0; i < len / 2; i++)
 				{
 					char temp = buffer[i];

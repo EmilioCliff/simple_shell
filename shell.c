@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
-int main()
+int main(void)
 {
 	pid_t pid;
 	char *lineptr = NULL, *lineptr_cpy = NULL, *denim, *token = NULL, *path = NULL, *path_name = NULL;
@@ -16,7 +16,7 @@ int main()
 
 	denim = " \n";
 
-	while(1)
+	while (1)
 	{
 	print_dir();
 	no_of_char = getline(&lineptr, &n, stdin);
@@ -75,7 +75,6 @@ int main()
 		_printf("command not found: %s\n", argv[0]);
 		continue;
 	}
-	
 	pid = fork();
 	if (pid == 0)
 	{
@@ -86,19 +85,15 @@ int main()
 	{
 		_printf("forking failed");
 	}
-	else 
+	else
 	{
 		wait(&status);
 	}
-	}	
-	/*free(lineptr_cpy);*/
-	/*free_all(lineptr_cpy);*/
+	}
 	for (i = 0; argv[i] != NULL; i++)
 		free_all(argv[i]);
 	free_all(argv);
 	free_all(path);
-	free_all(path_name);		
+	free_all(path_name);
 	return (0);
 }
-
-
