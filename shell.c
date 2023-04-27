@@ -89,11 +89,12 @@ int main(void)
 	{
 		wait(&status);
 	}
-	}
+	
 	for (i = 0; argv[i] != NULL; i++)
 		free_all(argv[i]);
 	free_all(argv);
 	free_all(path);
 	free_all(path_name);
+	}
 	return (0);
 }
