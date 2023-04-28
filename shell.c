@@ -1,104 +1,43 @@
-#include <unistd.h>
 #include "main.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/wait.h>
-int main()
+
+/**
+ * main - entry point
+ * @ac: counts arg
+ * @av: arg vector
+ * Return: 0 on Success, 1 on error
+ */
+int main(int ac, char **av)
 {
-	pid_t pid;
-	char *lineptr = NULL, *lineptr_cpy = NULL, *denim, *token = NULL, *path = NULL, *path_name = NULL;
-	size_t n = 0;
-	ssize_t no_of_char = 0;
-	int i = 0,/* count = 0,*/ status, /*result,*/ cmp_rslt;
-	char **argv;
-	int argc = 0;
+	info_t info[] = {INFO_INIT};
+	int fd = 2;
 
-	denim = " \n";
+	asm ("mov %1, %0\n\t"
+			"add $3, %0"
+			: "=r" (fd)
+			: "r" (fd));
 
-	while(1)
+	if (ac == 2)
 	{
-	print_dir();
-	no_of_char = getline(&lineptr, &n, stdin);
-	if (no_of_char == -1)
-	{
-		_printf("Exiting Terminal\n");
-		return (-1);
+		fd = open(av[1], O_RDONLY);
+		if (fd == -1)
+		{
+			if (errno == EACCES)
+				exit(126);
+			if (errno == ENOENT)
+			{
+				_eputs(av[0]);
+				_eputs(": 0: Can't open ");
+				_eputs(av[1]);
+				_eputchar('\n');
+				_eputchar(BUF_FLUSH);
+				exit(127);
+			}
+			return (EXIT_FAILURE);
+		}
+		info->readfd = fd;
 	}
-	lineptr_cpy = malloc(sizeof(char) * no_of_char);
-	if (lineptr_cpy == NULL)
-	{
-		perror("malloc");
-		return (-1);
-	}
-	_strcpy(lineptr_cpy, lineptr);
-
-	token = strtok(lineptr_cpy, denim);
-
-	while (token != NULL)
-	{
-		argc++;
-		token = strtok(NULL, denim);
-	}
-	argc++;
-	free(lineptr_cpy);
-	argv = malloc(sizeof(char *) * argc);
-	if (argv == NULL)
-	{
-		perror("malloc");
-		return (-1);
-	}
-	token = strtok(lineptr, denim);
-	cmp_rslt = _strcmp(token, "cd");
-	if (cmp_rslt == 1)
-	{
-		token = strtok(NULL, denim);
-		chdir(token);
-		continue;
-	}
-	cmp_rslt = _strcmp(token, "exit");
-	if (cmp_rslt == 1)
-	{
-		_printf("Exiting Terminal\n");
-		exit(-1);
-	}
-	argv[0] = token;
-	for (i = 1; argv[i - 1] != NULL; i++)
-	{
-		argv[i] = strtok(NULL, denim);
-	}
-	argv[i] = NULL;
-	path = _getenv("PATH");
-	path_name = find_argv_in_path(path, argv[0]);
-	if (path_name == NULL)
-	{
-		_printf("command not found: %s\n", argv[0]);
-		continue;
-	}
-	
-	pid = fork();
-	if (pid == 0)
-	{
-	execve(path_name, argv,  NULL);
-	perror("execve");
-	}
-	else if (pid == -1)
-	{
-		_printf("forking failed");
-	}
-	else 
-	{
-		wait(&status);
-	}
-	}	
-	/*free(lineptr_cpy);*/
-	/*free_all(lineptr_cpy);*/
-	for (i = 0; argv[i] != NULL; i++)
-		free_all(argv[i]);
-	free_all(argv);
-	free_all(path);
-	free_all(path_name);		
-	return (0);
+	populate_env_list(info);
+	read_history(info);
+	hsh(info, av);
+	return (EXIT_SUCCESS);
 }
-
-
